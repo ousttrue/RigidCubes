@@ -1,0 +1,17 @@
+{
+    "name": "jp.ousttrue.rigidcubes",
+    "displayName": "Rigid Cubes",
+    "version": "0.1.0",
+    "unity": "2021.3",
+    "description": "Right handed tracker visualizer.",
+    "dependencies": {},
+    "keywords": [],
+    "license": "MIT",
+    "author": {
+        "name": "ousttrue"
+    },
+    "repository": {
+        "type": "git",
+        "url": ""
+    }
+}
