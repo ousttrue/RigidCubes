@@ -29,6 +29,10 @@ namespace RigidCubes
                 m_colors.Add(Color.white);
             }
             m_colors[id] = Color.white;
+
+            var bone = new GameObject($"[{id:000}]").transform;
+            bone.SetParent(m_root, false);
+            m_bones.Add(bone);
         }
 
         public override void SetParent(int id, int parentId)
@@ -38,6 +42,15 @@ namespace RigidCubes
                 var child = m_joints[id];
                 m_parentMap[child] = parent;
             }
+        }
+
+        static Quaternion ReverseX(Quaternion r)
+        {
+            return new Quaternion(-r.x, r.y, r.z, -r.w);
+        }
+        static Vector3 ReverseX(Vector3 t)
+        {
+            return new Vector3(-t.x, t.y, t.z);
         }
 
         /// <summary>
@@ -50,7 +63,10 @@ namespace RigidCubes
             var (joint, parent) = GetJoint(id);
             joint.Transform = parent * local;
             // x-mirror for right handed coordinate
-            m_matrices[id] = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * m_root.localToWorldMatrix * joint.ShapeAndTransform;
+            // var m = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * joint.ShapeAndTransform;
+            m_bones[id].localRotation = ReverseX(joint.Transform.Rotation);
+            m_bones[id].localPosition = ReverseX(joint.Transform.Translation);
+            m_bones[id].localScale = Vector3.one;
         }
     }
 }

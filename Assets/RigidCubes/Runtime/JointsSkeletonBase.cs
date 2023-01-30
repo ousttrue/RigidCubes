@@ -8,22 +8,35 @@ namespace RigidCubes
     public abstract class JointsSkeletonBase : IDisposable
     {
         Mesh m_mesh;
+        Material m_material;
+        SkinnedMeshRenderer m_smr;
         protected Transform m_root;
+        protected List<Transform> m_bones = new List<Transform>();
         protected Dictionary<int, Joint> m_joints = new Dictionary<int, Joint>();
         protected Dictionary<Joint, Joint> m_parentMap = new Dictionary<Joint, Joint>();
-
-        protected Matrix4x4[] m_matrices = new Matrix4x4[128];
         protected List<Vector4> m_colors = new List<Vector4>();
         protected MaterialPropertyBlock m_props = new MaterialPropertyBlock();
+        bool m_initialized = false;
 
-        protected JointsSkeletonBase(Transform root)
+        protected JointsSkeletonBase(Transform root, int cubeCount = 100)
         {
             m_root = root;
-            m_mesh = CreateMesh();
+            m_mesh = CreateCubes(100);
+            m_material = new Material(Shader.Find("Standard"));
+            m_smr = root.gameObject.AddComponent<SkinnedMeshRenderer>();
+            m_smr.sharedMesh = m_mesh;
+            m_smr.sharedMaterial = m_material;
         }
 
         public void Dispose()
         {
+            foreach (var bone in m_bones)
+            {
+                if (bone != null)
+                {
+                    GameObject.Destroy(bone.gameObject);
+                }
+            }
             GameObject.Destroy(m_mesh);
         }
 
@@ -59,46 +72,31 @@ namespace RigidCubes
             }
         }
 
-        public Mesh CreateMesh()
+        Mesh CreateCubes(int cubeCount)
         {
             var builder = new MeshBuilder();
-
-            // reauire Y-Up 1.0f size Shape.
-            //
-            //    7 6
-            //    +-+
-            //   / /|
-            // 4+-+5+2
-            //  | |/
-            //  +-+
-            //  0 1
-            //  ------> x
-            var s = 0.5f;
-            var v0 = new Vector3(-s, 0, -s);
-            var v1 = new Vector3(+s, 0, -s);
-            var v2 = new Vector3(+s, 0, +s);
-            var v3 = new Vector3(-s, 0, +s);
-            var v4 = new Vector3(-s, 2 * s, -s);
-            var v5 = new Vector3(+s, 2 * s, -s);
-            var v6 = new Vector3(+s, 2 * s, +s);
-            var v7 = new Vector3(-s, 2 * s, +s);
-
-            builder.PushQuadrangle(v0, v1, v2, v3);
-            builder.PushQuadrangle(v5, v4, v7, v6);
-            builder.PushQuadrangle(v1, v0, v4, v5);
-            builder.PushQuadrangle(v2, v1, v5, v6);
-            builder.PushQuadrangle(v3, v2, v6, v7);
-            builder.PushQuadrangle(v0, v3, v7, v4);
-
+            for (int i = 0; i < cubeCount; ++i)
+            {
+                builder.PushCube();
+            }
             var mesh = builder.ToMesh();
             mesh.name = "JointsSkeleton";
             return mesh;
         }
 
-        public void Draw(Material material)
+        public void Draw()
         {
-            m_props.SetVectorArray("_Color", m_colors);
-            Graphics.DrawMeshInstanced(m_mesh, 0, material, m_matrices, m_colors.Count, m_props);
+            if (!m_initialized)
+            {
+                m_initialized = true;
+                m_mesh.bindposes = m_bones.Select((x, i) =>
+                {
+                    var inv = 0.02f;
+                    var m = Matrix4x4.Scale(new Vector3(inv, inv, inv));
+                    return m;
+                }).ToArray();
+                m_smr.bones = m_bones.ToArray();
+            }
         }
     }
 }

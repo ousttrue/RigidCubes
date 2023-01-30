@@ -52,7 +52,10 @@ namespace RigidCubes
             var (joint, _) = GetJoint(id);
             joint.Transform = world;
             // x-mirror for right handed coordinate
-            m_matrices[id] = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * m_root.localToWorldMatrix * joint.ShapeAndTransform;
+            // m_matrices[id] = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * m_root.localToWorldMatrix * joint.ShapeAndTransform;
+            m_bones[id].localRotation = joint.Transform.Rotation;
+            m_bones[id].localPosition = joint.Transform.Translation;
+            m_bones[id].localScale = new Vector3(0.02f, 0.02f, 0.02f);
         }
     }
 }
