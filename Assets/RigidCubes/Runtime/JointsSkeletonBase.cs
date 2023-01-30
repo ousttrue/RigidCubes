@@ -17,15 +17,54 @@ namespace RigidCubes
         protected List<Vector4> m_colors = new List<Vector4>();
         protected MaterialPropertyBlock m_props = new MaterialPropertyBlock();
         bool m_initialized = false;
-
-        protected JointsSkeletonBase(Transform root, int cubeCount = 100)
+        CoordinateConversion m_coords;
+        protected JointsSkeletonBase(CoordinateConversion coords, Transform root, int cubeCount)
         {
+            m_coords = coords;
             m_root = root;
-            m_mesh = CreateCubes(100);
+            m_mesh = CreateCubes(cubeCount);
             m_material = new Material(Shader.Find("Standard"));
             m_smr = root.gameObject.AddComponent<SkinnedMeshRenderer>();
             m_smr.sharedMesh = m_mesh;
             m_smr.sharedMaterial = m_material;
+        }
+
+        Mesh CreateCubes(int cubeCount)
+        {
+            var builder = new MeshBuilder();
+            for (int i = 0; i < cubeCount; ++i)
+            {
+                builder.PushCube();
+            }
+            var mesh = builder.ToMesh();
+            mesh.name = "JointsSkeleton";
+            return mesh;
+        }
+
+        protected Quaternion Reverse(Quaternion r)
+        {
+            switch (m_coords)
+            {
+                case CoordinateConversion.XReverse:
+                    return new Quaternion(-r.x, r.y, r.z, -r.w);
+                case CoordinateConversion.ZReverse:
+                    return new Quaternion(r.x, r.y, -r.z, -r.w);
+                default:
+                    return r;
+            }
+        }
+
+        protected Vector3 Reverse(Vector3 t)
+        {
+            switch (m_coords)
+            {
+                case CoordinateConversion.XReverse:
+                    return new Vector3(-t.x, t.y, t.z);
+                case CoordinateConversion.ZReverse:
+                    return new Vector3(t.x, t.y, -t.z);
+                default:
+                    return t;
+            }
         }
 
         public void Dispose()
@@ -43,11 +82,6 @@ namespace RigidCubes
         public abstract void AddJoint(int id, Quaternion r, Vector3 t);
         public abstract void SetParent(int id, int parentId);
 
-        public void SetTail(int head, int tail, Vector3 forward)
-        {
-            m_joints[head].SetTail(m_joints[tail].InitialFromParent.Translation, forward);
-        }
-
         protected (Joint, RigidTransform parent) GetJoint(int id)
         {
             var joint = m_joints[id];
@@ -63,6 +97,11 @@ namespace RigidCubes
 
         public abstract void SetTransform(int id, RigidTransform transform);
 
+        public void SetShape(int id, Vector3 scalingCenter, Vector3 widthHeightDepth)
+        {
+            m_joints[id].SetShape(scalingCenter, widthHeightDepth);
+        }
+
         public void InitPose()
         {
             foreach (var id in m_joints.Keys.OrderBy(x => x))
@@ -70,18 +109,6 @@ namespace RigidCubes
                 var (joint, matrix) = GetJoint(id);
                 SetTransform(id, joint.InitialFromParent);
             }
-        }
-
-        Mesh CreateCubes(int cubeCount)
-        {
-            var builder = new MeshBuilder();
-            for (int i = 0; i < cubeCount; ++i)
-            {
-                builder.PushCube();
-            }
-            var mesh = builder.ToMesh();
-            mesh.name = "JointsSkeleton";
-            return mesh;
         }
 
         public void Draw()

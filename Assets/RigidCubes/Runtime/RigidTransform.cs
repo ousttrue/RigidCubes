@@ -47,6 +47,11 @@ namespace RigidCubes
             };
         }
 
+        public Vector3 Apply(Vector3 src)
+        {
+            return Rotation * src + Translation;
+        }
+
         public Matrix4x4 Matrix
         {
             get

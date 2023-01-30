@@ -8,7 +8,7 @@ namespace RigidCubes
     /// </summary>
     public class AbsoluteJointsSkeleton : JointsSkeletonBase
     {
-        public AbsoluteJointsSkeleton(Transform root) : base(root) { }
+        public AbsoluteJointsSkeleton(CoordinateConversion coords, Transform root, int cubeCount) : base(coords, root, cubeCount) { }
 
         /// <summary>
         /// 
@@ -22,6 +22,7 @@ namespace RigidCubes
             {
                 Transform = new RigidTransform(r, t),
                 InitialFromParent = new RigidTransform(r, t),
+                Initial = new RigidTransform(r, t),
             };
 
             while (m_colors.Count <= id)
@@ -29,17 +30,21 @@ namespace RigidCubes
                 m_colors.Add(Color.white);
             }
             m_colors[id] = Color.white;
+
+            var bone = new GameObject($"[{id:000}]").transform;
+            bone.SetParent(m_root, false);
+            m_bones.Add(bone);
         }
 
         public override void SetParent(int id, int parentId)
         {
-            if (m_joints.TryGetValue(parentId, out Joint parent))
-            {
-                var child = m_joints[id];
-                m_parentMap[child] = parent;
-                // calc relative initial value
-                child.InitialFromParent = parent.Transform.Inversed() * child.InitialFromParent;
-            }
+            // if (m_joints.TryGetValue(parentId, out Joint parent))
+            // {
+            //     var child = m_joints[id];
+            //     m_parentMap[child] = parent;
+            //     // calc relative initial value
+            //     child.InitialFromParent = parent.Transform.Inversed() * child.InitialFromParent;
+            // }
         }
 
         /// <summary>
@@ -52,10 +57,9 @@ namespace RigidCubes
             var (joint, _) = GetJoint(id);
             joint.Transform = world;
             // x-mirror for right handed coordinate
-            // m_matrices[id] = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * m_root.localToWorldMatrix * joint.ShapeAndTransform;
-            m_bones[id].localRotation = joint.Transform.Rotation;
-            m_bones[id].localPosition = joint.Transform.Translation;
-            m_bones[id].localScale = new Vector3(0.02f, 0.02f, 0.02f);
+            m_bones[id].localRotation = Reverse(joint.Transform.Rotation);
+            m_bones[id].localPosition = Reverse(joint.Transform.Translation);
+            m_bones[id].localScale = Vector3.one;
         }
     }
 }

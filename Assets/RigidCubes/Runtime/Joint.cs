@@ -15,7 +15,9 @@ namespace RigidCubes
         public RigidTransform Transform;
         public RigidTransform Initial;
         public RigidTransform InitialFromParent;
-        public Matrix4x4 Shape;
+
+        const float CENTIMETER = 0.01f;
+        public Matrix4x4 Shape = Matrix4x4.Scale(new Vector3(CENTIMETER, CENTIMETER, CENTIMETER));
 
         /// <summary>
         /// cube の向きとサイズを決める
@@ -26,7 +28,7 @@ namespace RigidCubes
         /// 長さを head-tail
         /// </summary>
         /// <param name="child"></param>
-        public void SetTail(Vector3 localTail, Vector3 localForward)
+        public void HeadTailShape(Vector3 localTail, Vector3 localForward)
         {
             var y = localTail.normalized;
             var z = localForward.normalized;
@@ -45,6 +47,13 @@ namespace RigidCubes
             var s = Matrix4x4.Scale(new Vector3(0.02f, localTail.magnitude, 0.02f));
             var center = Matrix4x4.Translate(new Vector3(0, 0.5f, 0));
             Shape = Matrix4x4.Rotate(q) * s * center;
+        }
+
+        public void SetShape(Vector3 scalingCenter, Vector3 widthHeightDepth)
+        {
+            var center = Matrix4x4.Translate(scalingCenter);
+            var s = Matrix4x4.Scale(widthHeightDepth);
+            Shape = s * center;
         }
     }
 }

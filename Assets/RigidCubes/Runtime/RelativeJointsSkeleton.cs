@@ -8,7 +8,7 @@ namespace RigidCubes
     /// </summary>
     public class RelativeJointsSkeleton : JointsSkeletonBase
     {
-        public RelativeJointsSkeleton(Transform root) : base(root) { }
+        public RelativeJointsSkeleton(CoordinateConversion coords, Transform root, int cubeCount) : base(coords, root, cubeCount) { }
 
         /// <summary>
         /// 
@@ -46,13 +46,9 @@ namespace RigidCubes
             }
         }
 
-        static Quaternion ReverseX(Quaternion r)
+        public void HeadTailShape(int head, int tail, Vector3 forward)
         {
-            return new Quaternion(-r.x, r.y, r.z, -r.w);
-        }
-        static Vector3 ReverseX(Vector3 t)
-        {
-            return new Vector3(-t.x, t.y, t.z);
+            m_joints[head].HeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
         }
 
         /// <summary>
@@ -65,9 +61,8 @@ namespace RigidCubes
             var (joint, parent) = GetJoint(id);
             joint.Transform = parent * local;
             // x-mirror for right handed coordinate
-            // var m = Matrix4x4.Scale(new Vector3(-1, 1, 1)) * joint.ShapeAndTransform;
-            m_bones[id].localRotation = ReverseX(joint.Transform.Rotation);
-            m_bones[id].localPosition = ReverseX(joint.Transform.Translation);
+            m_bones[id].localRotation = Reverse(joint.Transform.Rotation);
+            m_bones[id].localPosition = Reverse(joint.Transform.Translation);
             m_bones[id].localScale = Vector3.one;
         }
     }

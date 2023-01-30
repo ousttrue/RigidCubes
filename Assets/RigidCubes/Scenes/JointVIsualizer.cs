@@ -8,7 +8,7 @@ public class JointVIsualizer : MonoBehaviour
 
     void OnEnable()
     {
-        m_skeleton = new RigidCubes.RelativeJointsSkeleton(transform);
+        m_skeleton = new RigidCubes.RelativeJointsSkeleton(RigidCubes.CoordinateConversion.ZReverse, transform, 100);
     }
 
     void OnDisable()
