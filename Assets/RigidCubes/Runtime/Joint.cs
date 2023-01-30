@@ -2,12 +2,20 @@ using UnityEngine;
 
 namespace RigidCubes
 {
+    public enum TailOrientation
+    {
+        Up,
+        Down,
+        Right,
+        Left,
+    }
+
     public class Joint
     {
         public RigidTransform Transform;
+        public RigidTransform Initial;
         public RigidTransform InitialFromParent;
-        public Matrix4x4 Shape = Matrix4x4.Scale(new Vector3(0.02f, 0.02f, 0.02f));
-        public Matrix4x4 ShapeAndTransform => Transform.Matrix * Shape;
+        public Matrix4x4 Shape;
 
         /// <summary>
         /// cube の向きとサイズを決める
@@ -18,11 +26,10 @@ namespace RigidCubes
         /// 長さを head-tail
         /// </summary>
         /// <param name="child"></param>
-        public void SetTail(Joint child)
+        public void SetTail(Vector3 localTail, Vector3 localForward)
         {
-            var tail = child.InitialFromParent.Translation;
-            var y = tail.normalized;
-            var z = Vector3.forward;
+            var y = localTail.normalized;
+            var z = localForward.normalized;
             var x = Vector3.Cross(y, z).normalized;
             z = Vector3.Cross(x, y).normalized;
 
@@ -32,8 +39,12 @@ namespace RigidCubes
                 new Vector4(z.x, z.y, z.z, 0),
                 new Vector4(0, 0, 0, 1)
                 );
-            var s = Matrix4x4.Scale(new Vector3(0.02f, tail.magnitude, 0.02f));
-            Shape = r * s;
+            var q = r.rotation;
+            q = new Quaternion(-q.x, q.y, q.z, -q.w);
+
+            var s = Matrix4x4.Scale(new Vector3(0.02f, localTail.magnitude, 0.02f));
+            var center = Matrix4x4.Translate(new Vector3(0, 0.5f, 0));
+            Shape = Matrix4x4.Rotate(q) * s * center;
         }
     }
 }

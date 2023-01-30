@@ -22,6 +22,7 @@ namespace RigidCubes
             {
                 Transform = RigidTransform.Identity,
                 InitialFromParent = new RigidTransform(r, t),
+                Initial = new RigidTransform(r, t),
             };
 
             while (m_colors.Count <= id)
@@ -41,6 +42,7 @@ namespace RigidCubes
             {
                 var child = m_joints[id];
                 m_parentMap[child] = parent;
+                child.Initial = parent.Initial * child.Initial;
             }
         }
 

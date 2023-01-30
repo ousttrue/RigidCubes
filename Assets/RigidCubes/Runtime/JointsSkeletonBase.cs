@@ -43,9 +43,9 @@ namespace RigidCubes
         public abstract void AddJoint(int id, Quaternion r, Vector3 t);
         public abstract void SetParent(int id, int parentId);
 
-        public void SetTail(int head, int tail)
+        public void SetTail(int head, int tail, Vector3 forward)
         {
-            m_joints[head].SetTail(m_joints[tail]);
+            m_joints[head].SetTail(m_joints[tail].InitialFromParent.Translation, forward);
         }
 
         protected (Joint, RigidTransform parent) GetJoint(int id)
@@ -89,12 +89,7 @@ namespace RigidCubes
             if (!m_initialized)
             {
                 m_initialized = true;
-                m_mesh.bindposes = m_bones.Select((x, i) =>
-                {
-                    var inv = 0.02f;
-                    var m = Matrix4x4.Scale(new Vector3(inv, inv, inv));
-                    return m;
-                }).ToArray();
+                m_mesh.bindposes = m_bones.Select((x, i) => m_joints[i].Shape).ToArray();
                 m_smr.bones = m_bones.ToArray();
             }
         }
