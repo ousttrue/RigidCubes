@@ -51,7 +51,7 @@ namespace RigidCubes
 
         public void SetShape(Vector3 scalingCenter, Vector3 widthHeightDepth)
         {
-            var center = Matrix4x4.Translate(scalingCenter);
+            var center = Matrix4x4.Translate(-scalingCenter);
             var s = Matrix4x4.Scale(widthHeightDepth);
             Shape = s * center;
         }

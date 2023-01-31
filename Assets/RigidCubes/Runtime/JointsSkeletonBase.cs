@@ -25,6 +25,7 @@ namespace RigidCubes
             m_mesh = CreateCubes(cubeCount);
             m_material = new Material(Shader.Find("Standard"));
             m_smr = root.gameObject.AddComponent<SkinnedMeshRenderer>();
+            m_smr.updateWhenOffscreen = true;
             m_smr.sharedMesh = m_mesh;
             m_smr.sharedMaterial = m_material;
         }
