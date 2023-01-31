@@ -16,7 +16,6 @@ namespace RigidCubes
         Dictionary<Joint, Joint> m_parentMap = new Dictionary<Joint, Joint>();
         List<Vector4> m_colors = new List<Vector4>();
         MaterialPropertyBlock m_props = new MaterialPropertyBlock();
-        bool m_initialized = false;
         CoordinateConversion m_coords;
         public JointsSkeleton(CoordinateConversion coords, Transform root, int cubeCount)
         {
@@ -86,7 +85,7 @@ namespace RigidCubes
         /// <param name="id"></param>
         /// <param name="r">world</param>
         /// <param name="t">world</param>
-        public void AddJointAbsolute(int id, Quaternion r, Vector3 t)
+        public void AddJointAbsolute(int id, Quaternion r, Vector3 t, string name = null)
         {
             m_joints[id] = new Joint
             {
@@ -101,7 +100,11 @@ namespace RigidCubes
             }
             m_colors[id] = Color.white;
 
-            var bone = new GameObject($"[{id:000}]").transform;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = $"[{id:000}]";
+            }
+            var bone = new GameObject(name).transform;
             bone.SetParent(m_root, false);
             m_bones.Add(bone);
         }
@@ -138,7 +141,7 @@ namespace RigidCubes
         /// <param name="id"></param>
         /// <param name="r">parent relative</param>
         /// <param name="t">parent relative</param>
-        public void AddJointRelative(int id, Quaternion r, Vector3 t)
+        public void AddJointRelative(int id, Quaternion r, Vector3 t, string name = null)
         {
             m_joints[id] = new Joint
             {
@@ -153,7 +156,11 @@ namespace RigidCubes
             }
             m_colors[id] = Color.white;
 
-            var bone = new GameObject($"[{id:000}]").transform;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = $"[{id:000}]";
+            }
+            var bone = new GameObject(name).transform;
             bone.SetParent(m_root, false);
             m_bones.Add(bone);
         }
@@ -168,9 +175,14 @@ namespace RigidCubes
             }
         }
 
-        public void HeadTailShape(int head, int tail, Vector3 forward)
+        public void YAxisHeadTailShape(int head, int tail, Vector3 forward)
         {
-            m_joints[head].HeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
+            m_joints[head].YAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
+        }
+
+        public void NegativeZAxisHeadTailShape(int head, int tail, Vector3 forward)
+        {
+            m_joints[head].NegativeZAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
         }
 
         /// <summary>
@@ -215,14 +227,10 @@ namespace RigidCubes
             }
         }
 
-        public void Draw()
+        public void SetupSkinning()
         {
-            if (!m_initialized)
-            {
-                m_initialized = true;
-                m_mesh.bindposes = m_bones.Select((x, i) => m_joints[i].Shape).ToArray();
-                m_smr.bones = m_bones.ToArray();
-            }
+            m_mesh.bindposes = m_bones.Select((x, i) => m_joints[i].Shape).ToArray();
+            m_smr.bones = m_bones.ToArray();
         }
     }
 }
