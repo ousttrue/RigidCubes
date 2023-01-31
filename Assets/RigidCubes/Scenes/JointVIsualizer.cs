@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class JointVIsualizer : MonoBehaviour
 {
-    RigidCubes.RelativeJointsSkeleton m_skeleton;
+    RigidCubes.JointsSkeleton m_skeleton;
 
     void OnEnable()
     {
-        m_skeleton = new RigidCubes.RelativeJointsSkeleton(RigidCubes.CoordinateConversion.ZReverse, transform, 100);
+        m_skeleton = new RigidCubes.JointsSkeleton(RigidCubes.CoordinateConversion.ZReverse, transform, 100);
     }
 
     void OnDisable()
