@@ -191,6 +191,16 @@ namespace RigidCubes
             m_bones[id].localPosition = Reverse(joint.Transform.Translation);
             m_bones[id].localScale = Vector3.one;
         }
+
+        public void SetRotationRelative(int id, Quaternion rotation)
+        {
+            var (joint, parent) = GetJoint(id);
+            joint.Transform = parent * new RigidTransform(rotation, joint.InitialFromParent.Translation);
+            // x-mirror for right handed coordinate
+            m_bones[id].localRotation = Reverse(joint.Transform.Rotation);
+            m_bones[id].localPosition = Reverse(joint.Transform.Translation);
+            m_bones[id].localScale = Vector3.one;
+        }
         #endregion
 
         #region Shape
