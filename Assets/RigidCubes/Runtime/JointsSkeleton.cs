@@ -79,6 +79,7 @@ namespace RigidCubes
             GameObject.Destroy(m_mesh);
         }
 
+        #region Absolute
         /// <summary>
         /// 
         /// </summary>
@@ -111,13 +112,12 @@ namespace RigidCubes
 
         public void SetParentAbsolute(int id, int parentId)
         {
-            // if (m_joints.TryGetValue(parentId, out Joint parent))
-            // {
-            //     var child = m_joints[id];
-            //     m_parentMap[child] = parent;
-            //     // calc relative initial value
-            //     child.InitialFromParent = parent.Transform.Inversed() * child.InitialFromParent;
-            // }
+            if (m_joints.TryGetValue(parentId, out Joint parent))
+            {
+                var child = m_joints[id];
+                m_parentMap[child] = parent;
+                child.InitialFromParent = parent.Initial.Inversed() * child.Initial;
+            }
         }
 
         /// <summary>
@@ -134,7 +134,9 @@ namespace RigidCubes
             m_bones[id].localPosition = Reverse(joint.Transform.Translation);
             m_bones[id].localScale = Vector3.one;
         }
+        #endregion
 
+        #region Relative
         /// <summary>
         /// 
         /// </summary>
@@ -165,7 +167,7 @@ namespace RigidCubes
             m_bones.Add(bone);
         }
 
-        public void SetParent(int id, int parentId)
+        public void SetParentRelative(int id, int parentId)
         {
             if (m_joints.TryGetValue(parentId, out Joint parent))
             {
@@ -173,16 +175,6 @@ namespace RigidCubes
                 m_parentMap[child] = parent;
                 child.Initial = parent.Initial * child.Initial;
             }
-        }
-
-        public void YAxisHeadTailShape(int head, int tail, Vector3 forward)
-        {
-            m_joints[head].YAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
-        }
-
-        public void NegativeZAxisHeadTailShape(int head, int tail, Vector3 forward)
-        {
-            m_joints[head].NegativeZAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
         }
 
         /// <summary>
@@ -199,6 +191,24 @@ namespace RigidCubes
             m_bones[id].localPosition = Reverse(joint.Transform.Translation);
             m_bones[id].localScale = Vector3.one;
         }
+        #endregion
+
+        #region Shape
+        public void YAxisHeadTailShape(int head, int tail, Vector3 forward)
+        {
+            m_joints[head].YAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
+        }
+
+        public void NegativeZAxisHeadTailShape(int head, int tail, Vector3 forward)
+        {
+            m_joints[head].NegativeZAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
+        }
+
+        public void SetShape(int id, Vector3 scalingCenter, Vector3 widthHeightDepth)
+        {
+            m_joints[id].SetShape(scalingCenter, widthHeightDepth);
+        }
+        #endregion
 
         (Joint, RigidTransform parent) GetJoint(int id)
         {
@@ -211,11 +221,6 @@ namespace RigidCubes
             {
                 return (joint, RigidTransform.Identity);
             }
-        }
-
-        public void SetShape(int id, Vector3 scalingCenter, Vector3 widthHeightDepth)
-        {
-            m_joints[id].SetShape(scalingCenter, widthHeightDepth);
         }
 
         public void InitPose()
