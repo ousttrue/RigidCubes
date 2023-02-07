@@ -23,7 +23,11 @@ namespace RigidCubes
             m_root = root;
             m_mesh = CreateCubes(cubeCount);
             m_material = new Material(Shader.Find("Standard"));
-            m_smr = root.gameObject.AddComponent<SkinnedMeshRenderer>();
+            m_smr = root.gameObject.GetComponent<SkinnedMeshRenderer>();
+            if (m_smr == null)
+            {
+                m_smr = root.gameObject.AddComponent<SkinnedMeshRenderer>();
+            }
             m_smr.updateWhenOffscreen = true;
             m_smr.sharedMesh = m_mesh;
             m_smr.sharedMaterial = m_material;
@@ -88,11 +92,22 @@ namespace RigidCubes
         /// <param name="t">world</param>
         public void AddJointAbsolute(int id, Quaternion r, Vector3 t, string name = null)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = $"[{id:000}]";
+            }
+            var bone = new GameObject(name).transform;
+            bone.SetParent(m_root, false);
+            bone.localRotation = Reverse(r);
+            bone.localPosition = Reverse(t);
+            m_bones.Add(bone);
+
             m_joints[id] = new Joint
             {
                 Transform = new RigidTransform(r, t),
                 InitialFromParent = new RigidTransform(r, t),
                 Initial = new RigidTransform(r, t),
+                UnityTransform = bone,
             };
 
             while (m_colors.Count <= id)
@@ -100,14 +115,6 @@ namespace RigidCubes
                 m_colors.Add(Color.white);
             }
             m_colors[id] = Color.white;
-
-            if (string.IsNullOrEmpty(name))
-            {
-                name = $"[{id:000}]";
-            }
-            var bone = new GameObject(name).transform;
-            bone.SetParent(m_root, false);
-            m_bones.Add(bone);
         }
 
         public void SetParentAbsolute(int id, int parentId)
@@ -116,7 +123,10 @@ namespace RigidCubes
             {
                 var child = m_joints[id];
                 m_parentMap[child] = parent;
+                parent.Children.Add(child);
                 child.InitialFromParent = parent.Initial.Inversed() * child.Initial;
+                child.UnityTransform.localRotation = Reverse(child.Initial.Rotation);
+                child.UnityTransform.localPosition = Reverse(child.Initial.Translation);
             }
         }
 
@@ -145,19 +155,6 @@ namespace RigidCubes
         /// <param name="t">parent relative</param>
         public void AddJointRelative(int id, Quaternion r, Vector3 t, string name = null)
         {
-            m_joints[id] = new Joint
-            {
-                Transform = RigidTransform.Identity,
-                InitialFromParent = new RigidTransform(r, t),
-                Initial = new RigidTransform(r, t),
-            };
-
-            while (m_colors.Count <= id)
-            {
-                m_colors.Add(Color.white);
-            }
-            m_colors[id] = Color.white;
-
             if (string.IsNullOrEmpty(name))
             {
                 name = $"[{id:000}]";
@@ -165,6 +162,20 @@ namespace RigidCubes
             var bone = new GameObject(name).transform;
             bone.SetParent(m_root, false);
             m_bones.Add(bone);
+
+            m_joints[id] = new Joint
+            {
+                Transform = RigidTransform.Identity,
+                InitialFromParent = new RigidTransform(r, t),
+                Initial = new RigidTransform(r, t),
+                UnityTransform = bone,
+            };
+
+            while (m_colors.Count <= id)
+            {
+                m_colors.Add(Color.white);
+            }
+            m_colors[id] = Color.white;
         }
 
         public void SetParentRelative(int id, int parentId)
@@ -173,7 +184,10 @@ namespace RigidCubes
             {
                 var child = m_joints[id];
                 m_parentMap[child] = parent;
+                parent.Children.Add(child);
                 child.Initial = parent.Initial * child.Initial;
+                child.UnityTransform.localRotation = Reverse(child.Initial.Rotation);
+                child.UnityTransform.localPosition = Reverse(child.Initial.Translation);
             }
         }
 
@@ -207,6 +221,22 @@ namespace RigidCubes
         public void YAxisHeadTailShape(int head, int tail, Vector3 forward)
         {
             m_joints[head].YAxisHeadTailShape(m_joints[tail].InitialFromParent.Translation, forward);
+        }
+
+        public void AutoHeadTailShapes(Joint joint = null)
+        {
+            if (joint == null)
+            {
+                joint = m_joints[0];
+            }
+            if (joint.Children.Count == 1)
+            {
+                joint.YAxisHeadTailShape(joint.Children[0].InitialFromParent.Translation, Vector3.forward);
+            }
+            foreach (var child in joint.Children)
+            {
+                AutoHeadTailShapes(child);
+            }
         }
 
         public void NegativeZAxisHeadTailShape(int head, int tail, Vector3 forward)

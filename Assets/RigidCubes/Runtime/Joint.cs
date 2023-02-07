@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RigidCubes
@@ -15,9 +16,12 @@ namespace RigidCubes
         public RigidTransform Transform;
         public RigidTransform Initial;
         public RigidTransform InitialFromParent;
+        public Transform UnityTransform;
 
         const float CENTIMETER = 0.01f;
         public Matrix4x4 Shape = Matrix4x4.Scale(new Vector3(CENTIMETER, CENTIMETER, CENTIMETER));
+
+        public List<Joint> Children = new List<Joint>();
 
         public void SetShape(Quaternion r, Vector3 scalingCenter, Vector3 widthHeightDepth)
         {

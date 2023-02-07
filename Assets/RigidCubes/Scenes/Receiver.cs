@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class Receiver : MonoBehaviour
 {
+    public int m_bufferSize = 2048;
     public int m_port = 54345;
-    RigidCubes.BufferPool m_pool = new RigidCubes.BufferPool();
+    public UnityEngine.Events.UnityEvent<ArraySegment<byte>> m_onMessage;
+
+    RigidCubes.BufferPool m_pool;
     RigidCubes.UdpSocketStream m_udp;
-    ConcurrentQueue<object> m_queue = new ConcurrentQueue<object>();
+    ConcurrentQueue<ArraySegment<byte>> m_queue = new ConcurrentQueue<ArraySegment<byte>>();
+    Exception m_ex;
 
     int m_received;
     int m_error;
@@ -15,6 +19,7 @@ public class Receiver : MonoBehaviour
     void OnEnable()
     {
         Debug.Log("Enable");
+        m_pool = new RigidCubes.BufferPool(m_bufferSize);
         m_udp = new RigidCubes.UdpSocketStream(m_port, new RigidCubes.UdpState(m_pool, OnReceive, OnError));
     }
 
@@ -31,31 +36,27 @@ public class Receiver : MonoBehaviour
 
     void OnError(Exception ex)
     {
-        m_queue.Enqueue(ex);
+        m_ex = ex;
     }
 
     void OnGUI()
     {
-        GUILayout.Label($"received: {m_received}");
+        // GUILayout.Label($"received: {m_received}");
+        if (m_ex != null)
+        {
+            GUILayout.Label($"exception: {m_ex}");
+        }
     }
 
     void Update()
     {
-        while (m_queue.TryDequeue(out var item))
+        while (m_queue.TryDequeue(out var buffer))
         {
-            switch (item)
-            {
-                case ArraySegment<byte> buffer:
-                    ++m_received;
-                    // Debug.Log($"receive: {m_received}");
-                    m_pool.ReleaseBuffer(buffer.Array);
-                    break;
+            ++m_received;
+            // Debug.Log($"receive: {m_received}");
+            m_onMessage.Invoke(buffer);
 
-                case Exception ex:
-                    ++m_error;
-                    Debug.LogException(ex);
-                    break;
-            }
+            m_pool.ReleaseBuffer(buffer.Array);
         }
     }
 }
