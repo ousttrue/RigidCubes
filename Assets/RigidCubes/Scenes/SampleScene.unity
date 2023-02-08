@@ -248,6 +248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4984589bd17c0741be6222e042c395e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_bufferSize: 2048
   m_port: 54345
   m_onMessage:
     m_PersistentCalls:
@@ -321,6 +322,21 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  OnMatrix:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 898517193}
+        m_TargetAssemblyTypeName: JointVIsualizer, Assembly-CSharp
+        m_MethodName: OnMatrix
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &898517193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -333,6 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28479ebdcfc41be4d917d3d1753a17e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_init: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0

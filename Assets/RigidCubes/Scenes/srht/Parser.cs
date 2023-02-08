@@ -57,12 +57,27 @@ namespace RigidCubes
 
                         if (m_jointCount > 0)
                         {
-                            var rotations = new Matrix4x4[m_jointCount];
-                            using (var pin = new ArrayPin(rotations))
+                            var rotations = new Quaternion[m_jointCount];
+                            if (header.flags.HasFlag(FrameFlags.USE_QUAT32))
                             {
-                                Marshal.Copy(message.Array, message.Offset + Marshal.SizeOf<FrameHeader>(), pin.Ptr, Marshal.SizeOf<Matrix4x4>() * m_jointCount);
+                                var packed = new UInt32[m_jointCount];
+                                using (var pin = new ArrayPin(packed))
+                                {
+                                    Marshal.Copy(message.Array, message.Offset + Marshal.SizeOf<FrameHeader>(), pin.Ptr, Marshal.SizeOf<UInt32>() * m_jointCount);
+                                }
+                                for (int i = 0; i < packed.Length; ++i)
+                                {
+                                    rotations[i] = Quat32.Unpack(packed[i]);
+                                }
                             }
-                            OnMatrix.Invoke(header, rotations);
+                            else
+                            {
+                                using (var pin = new ArrayPin(rotations))
+                                {
+                                    Marshal.Copy(message.Array, message.Offset + Marshal.SizeOf<FrameHeader>(), pin.Ptr, Marshal.SizeOf<Quaternion>() * m_jointCount);
+                                }
+                            }
+                            OnFrame.Invoke(header, rotations);
                         }
                     }
                     break;
