@@ -145,7 +145,7 @@ namespace RigidCubes
             float a1 = unpack(value.x1);
             float a2 = unpack(value.x2);
             float tmp = 1.0f - (square(a0) + square(a1) + square(a2));
-            float iss = System.MathF.Sqrt(tmp);
+            float iss = UnityEngine.Mathf.Sqrt(tmp);
 
             switch (value.drop)
             {
